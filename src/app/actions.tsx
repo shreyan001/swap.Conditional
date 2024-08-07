@@ -6,21 +6,20 @@ import { PriceSkeleton } from '@ai-rsc/components/llm-crypto/price-skeleton';
 import { Stats } from '@ai-rsc/components/llm-crypto/stats';
 import { StatsSkeleton } from '@ai-rsc/components/llm-crypto/stats-skeleton';
 import { env } from '@ai-rsc/env.mjs';
-import { openai } from '@ai-sdk/openai';
 import type { CoreMessage, ToolInvocation } from 'ai';
 import { createAI, getMutableAIState, streamUI } from 'ai/rsc';
-import { MainClient } from 'binance';
 import { Loader2 } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const binance = new MainClient({
-  api_key: env.BINANCE_API_KEY,
-  api_secret: env.BINANCE_API_SECRET,
-});
 
+const groq = createOpenAI({
+  baseURL: 'https://api.groq.com/openai/v1',
+  apiKey: process.env.GROQ_API_KEY,
+});
 /* 
   !-- The first implication of user interfaces being generative is that they are not deterministic in nature.
   !-- This is because they depend on the generation output by the model. Since these generations are probabilistic 
@@ -74,7 +73,7 @@ export async function sendMessage(message: string): Promise<{
   ]);
 
   const reply = await streamUI({
-    model: openai('gpt-4o-2024-05-13'),
+    model: groq('llama3-8b-8192'),
     messages: [
       {
         role: 'system',
@@ -109,7 +108,7 @@ export async function sendMessage(message: string): Promise<{
             </BotCard>
           );
 
-          const stats = await binance.get24hrChangeStatististics({ symbol: `${symbol}USDT` });
+          const stats = {lastPrice:'100', priceChange:'100'}
           // get the last price
           const price = Number(stats.lastPrice);
           // extract the delta
