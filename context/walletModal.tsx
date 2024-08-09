@@ -6,12 +6,12 @@
 import { createWeb3Modal, defaultConfig } from '@web3modal/ethers/react'
 
 // Your WalletConnect Cloud project ID
-export const projectId = process.env.WALLETCONNECT_API || '';
+const projectId = 'd31033f6549f9792c736ddddbd195d38';
 
 // 2. Set chains
 const testnet = {
-  chainId: 1,
-  name: 'Mode-testnet',
+  chainId: 919,
+  name: 'Mode Sepolia',
   currency: 'ETH',
   explorerUrl: 'https://sepolia.explorer.mode.network/',
   rpcUrl: 'https://sepolia.mode.network/'
