@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Open_Sans } from 'next/font/google';
 import { AI } from './actions';
+import { Web3Modal } from "../../context/walletModal";
+
+
 
 //👇 Configure our font object
 const openSans = Open_Sans({
@@ -21,7 +24,7 @@ export default function RootLayout({
   return (
     <AI>
       <html lang="en">
-        <body className={openSans.className}>{children}</body>
+      <Web3Modal> <body className={openSans.className}>{children}</body></Web3Modal>  
       </html>
     </AI>
   );

@@ -13,6 +13,11 @@ import { useEffect, useRef } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import TextareaAutosize from 'react-textarea-autosize';
 import type { AI } from "./actions";
+import ConnectButton from "@ai-rsc/components/WalletButton";
+import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react'
+import { BrowserProvider, Contract, formatUnits } from 'ethers'
+ 
+
 
 /*
   !-- With language models becoming better at reasoning, we believe that there is a future where
@@ -31,7 +36,8 @@ export default function Home() {
   const { sendMessage } = useActions<typeof AI>();
   const { formRef, onKeyDown } = useEnterSubmit();
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
+  const { address, chainId, isConnected } = useWeb3ModalAccount()
+  const { walletProvider } = useWeb3ModalProvider()
   const form = useForm<ChatInputs>();
 
   useEffect(() => {
@@ -90,7 +96,8 @@ export default function Home() {
   return (
     <main>
       <div className="pb-[200px] pt-4 md:pt-10">
-
+        <ConnectButton />
+        {isConnected ? <p>{address}</p> : <p>Not connected</p>}
         <ChatList messages={messages} />
         <ChatScrollAnchor trackVisibility={true} />
       </div>
