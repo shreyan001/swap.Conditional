@@ -22,14 +22,7 @@ const model = new ChatGroq({
 
    type lazyState = {
         messages: any[] | null,
-        swapValues?: {
-            sourceChain?: string | null,
-            sourceToken?: string | null,
-            destChain?: string | null,
-            destToken?: string | null,
-            amount?: string | null,
-            destAddress?: string | null,
-        }
+        contractAddress?: string
      }
 
 
@@ -39,7 +32,7 @@ export default function defigraph() {
             messages: {
                 value: (x: BaseMessage[], y: BaseMessage[]) => x.concat(y),
               },
-            swapValues: {
+            contractAddress: {
               value: null,
             }
 

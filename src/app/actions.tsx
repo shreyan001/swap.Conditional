@@ -1,37 +1,20 @@
 'use server';
-
-import { BotCard, BotMessage } from '@ai-rsc/components/llm-crypto/message';
-import { Price } from '@ai-rsc/components/llm-crypto/price';
+import { BotCard } from '@ai-rsc/components/llm-crypto/message';
 import { PriceSkeleton } from '@ai-rsc/components/llm-crypto/price-skeleton';
-import { Stats } from '@ai-rsc/components/llm-crypto/stats';
-import { StatsSkeleton } from '@ai-rsc/components/llm-crypto/stats-skeleton';
-import { env } from '@ai-rsc/env.mjs';
-import { END } from '@langchain/langgraph';
-import type { CoreMessage, ToolInvocation } from 'ai';
-import { createAI, getMutableAIState, streamUI } from 'ai/rsc';
-import { Loader2 } from 'lucide-react';
-import type { ReactNode } from 'react';
-import { createOpenAI } from '@ai-sdk/openai';
-import { z } from 'zod';
 import defigraph from '@ai-rsc/lib/defiGraph';
 import { AIMessage } from '@langchain/core/messages';
+import { BotMessage } from '@ai-rsc/components/llm-crypto/message';
+import { Loader2 } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { createAI, getMutableAIState } from 'ai/rsc';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-
-const groq = createOpenAI({
-  baseURL: 'https://api.groq.com/openai/v1',
-  apiKey: process.env.GROQ_API_KEY,
-});
-
-
 
 export async function sendMessage(message: string): Promise<{
   id: number,
   role: 'user' | 'assistant',
   display: ReactNode;
 }> {
-
   const history = getMutableAIState<typeof AI>();
 
   history.update([
@@ -41,44 +24,67 @@ export async function sendMessage(message: string): Promise<{
       content: message,
     },
   ]);
-  console.log(history.get(), "this is history betch")
 
+  // Initial loader display
+  const initialResponse: ReactNode = (
+    <BotMessage className="items-center flex shrink-0 select-none justify-center">
+      <Loader2 className="h-5 w-5 animate-spin stroke-zinc-900" />
+      <span className="ml-2">Processing...</span>
+    </BotMessage>
+  );
 
-   
+  history.update([
+    ...history.get(),
+    {
+      role: 'assistant',
+      content: initialResponse,
+    },
+  ]);
 
-const reply = await defigraph().stream({ messages: new AIMessage(message) });
-  let lastResponse = '';
+  const reply = await defigraph().stream({ messages: new AIMessage(message) });
+
+  let lastResponse: ReactNode = initialResponse;
+
+  // Simulate a delay to check the loader
+  await sleep(2000);
+
   for await (const value of reply) {
     const [nodeName, output] = Object.entries(value)[0];
-    /* @ts-ignore */
-    console.log(nodeName, output.messages[0].content);
-    if (nodeName !== END) {
-      /* @ts-ignore */console.log(lastResponse, "this is last response")
-      return lastResponse = output.messages[0].content;
-  
-    }} 
-  
-   
+    if (nodeName !== 'END') {
+      //@ts-ignore
+      lastResponse = <BotMessage>{output.messages[0].content}</BotMessage>;
+    }
+  }
+
+  // Update history with the final response
+  history.done([
+    ...history.get().slice(0, -1), // Remove the initial loader message
+    {
+      role: 'assistant',
+      content: lastResponse,
+    },
+  ]);
+
   return {
     id: Date.now(),
     role: 'assistant' as const,
-    display: value,
-    
+    display: <BotCard>
+    <PriceSkeleton />
+  </BotCard>,
   };
-};
+}
+
 // Define the AI state and UI state types
 export type AIState = Array<{
   id?: number;
-  name?: 'get_crypto_price' | 'get_crypto_stats';
   role: 'user' | 'assistant' | 'system';
-  content: string;
+  content: string | ReactNode;
 }>;
 
 export type UIState = Array<{
   id: number;
   role: 'user' | 'assistant';
   display: ReactNode;
-  toolInvocations?: ToolInvocation[];
 }>;
 
 // Create the AI provider with the initial states and allowed actions
